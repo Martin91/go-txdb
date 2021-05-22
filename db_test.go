@@ -299,7 +299,7 @@ func TestShouldCloseRootDB(t *testing.T) {
 		}
 		defer stmt.Close()
 
-		drv1 := db1.Driver().(*txDriver)
+		drv1 := db1.Driver().(*TxDriver)
 		if drv1.db == nil {
 			t.Fatalf(driver+": expected database, drv1.db: %v", drv1.db)
 		}
@@ -317,7 +317,7 @@ func TestShouldCloseRootDB(t *testing.T) {
 		defer stmt.Close()
 
 		// Both drivers share the same database.
-		drv2 := db2.Driver().(*txDriver)
+		drv2 := db2.Driver().(*TxDriver)
 		if drv2.db != drv1.db {
 			t.Fatalf(driver+": drv1.db=%v != drv2.db=%v", drv1.db, drv2.db)
 		}

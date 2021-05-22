@@ -84,7 +84,7 @@ import (
 // the dsn string when opening the sql.DB. The transaction will be
 // isolated within that dsn
 func Register(name, drv, dsn string, options ...func(*conn) error) {
-	sql.Register(name, &txDriver{
+	sql.Register(name, &TxDriver{
 		dsn:     dsn,
 		drv:     drv,
 		conns:   make(map[string]*conn),
@@ -92,19 +92,19 @@ func Register(name, drv, dsn string, options ...func(*conn) error) {
 	})
 }
 
-// txDriver is an sql driver which runs on single transaction
+// TxDriver is an sql driver which runs on single transaction
 // when the Close is called, transaction is rolled back
 type conn struct {
 	sync.Mutex
 	tx        *sql.Tx
 	dsn       string
 	opened    uint
-	drv       *txDriver
+	drv       *TxDriver
 	saves     uint
 	savePoint SavePoint
 }
 
-type txDriver struct {
+type TxDriver struct {
 	sync.Mutex
 	db       *sql.DB
 	realConn driver.Conn // Meant to be used as NamedValueChecker
@@ -115,7 +115,7 @@ type txDriver struct {
 	dsn string
 }
 
-func (d *txDriver) Open(dsn string) (driver.Conn, error) {
+func (d *TxDriver) Open(dsn string) (driver.Conn, error) {
 	d.Lock()
 	defer d.Unlock()
 	// first open a real database connection
@@ -150,7 +150,7 @@ func (d *txDriver) Open(dsn string) (driver.Conn, error) {
 // instead waiting automatical rollback called during conn.Close()
 // Caution: you should ensure that all db connections have been returned and
 // 			there is no any working query before you can call ForceRollback
-func (d *txDriver) ForceRollback() {
+func (d *TxDriver) ForceRollback() {
 	d.Lock()
 	defer d.Unlock()
 
@@ -162,7 +162,7 @@ func (d *txDriver) ForceRollback() {
 	}
 }
 
-func (d *txDriver) deleteConn(dsn string) error {
+func (d *TxDriver) deleteConn(dsn string) error {
 	d.Lock()
 	defer d.Unlock()
 
