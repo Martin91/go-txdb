@@ -146,6 +146,22 @@ func (d *txDriver) Open(dsn string) (driver.Conn, error) {
 	return c, nil
 }
 
+// ForceRollback provides an additional way to manually rollback transaction
+// instead waiting automatical rollback called during conn.Close()
+// Caution: you should ensure that all db connections have been returned and
+// 			there is no any working query before you can call ForceRollback
+func (d *txDriver) ForceRollback() {
+	d.Lock()
+	defer d.Unlock()
+
+	for _, conn := range d.conns {
+		if conn.tx != nil {
+			conn.tx.Rollback()
+			conn.tx = nil
+		}
+	}
+}
+
 func (d *txDriver) deleteConn(dsn string) error {
 	d.Lock()
 	defer d.Unlock()
